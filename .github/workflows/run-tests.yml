@@ -4,35 +4,18 @@ on: [push, pull_request]
 
 jobs:
     test:
-        runs-on: ${{ matrix.os }}
+        runs-on: ubuntu-latest
         strategy:
             fail-fast: false
             matrix:
-                os: [ubuntu-latest]
-                php: [8.4, 8.3, 8.2]
-                illuminate: [10.*, 11.*, 12.*]
+                php: [8.5, 8.4]
                 dependency-version: [prefer-lowest, prefer-stable]
-                exclude:
-                    - php: 8.1
-                      illuminate: 11.*
 
-        name: P${{ matrix.php }} - ${{ matrix.dependency-version }} - ${{ matrix.os }} - I ${{ matrix.illuminate }}
+        name: P${{ matrix.php }} - ${{ matrix.dependency-version }}
 
         steps:
             -   name: Checkout code
-                uses: actions/checkout@v4
-
-            -   name: Install Puppeteer
-                run: npm install puppeteer
-
-            -   name: Install and start test server
-                run: |
-                    cd tests/server
-                    npm install
-                    (node server.js &) || /bin/true
-
-            -   name: Wait for server bootup
-                run: sleep 5
+                uses: actions/checkout@v6
 
             -   name: Setup PHP
                 uses: shivammathur/setup-php@v2
@@ -42,9 +25,7 @@ jobs:
                     coverage: none
 
             -   name: Install dependencies
-                run: |
-                    composer require "laravel/framework:${{ matrix.illuminate }}" --no-interaction --no-update
-                    composer update --${{ matrix.dependency-version }} --no-interaction --prefer-source
+                run: composer update --${{ matrix.dependency-version }} --no-interaction --prefer-source
 
             -   name: Execute tests
                 run: vendor/bin/pest
